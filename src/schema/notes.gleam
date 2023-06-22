@@ -5,6 +5,7 @@ import espresso/response.{Response}
 import espresso/service.{Service}
 import gleam/bit_string
 import gleam/result
+import repo/schema.{Field, Schema}
 
 pub type Note {
   Note(id: Int, title: String, content: String)
@@ -12,6 +13,25 @@ pub type Note {
 
 pub fn new() {
   Note(id: 0, title: "", content: "")
+}
+
+pub fn schema() {
+  Schema(
+    table: "notes",
+    primary_key: "id",
+    fields: [
+      Field("id", schema.Integer),
+      Field("title", schema.String),
+      Field("content", schema.String),
+    ],
+    // Would be nice if we could generate this from fields
+    decoder: dynamic.decode3(
+      Note,
+      dynamic.element(0, dynamic.int),
+      dynamic.element(1, dynamic.string),
+      dynamic.element(2, dynamic.string),
+    ),
+  )
 }
 
 pub fn encode(note: Note) {

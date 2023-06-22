@@ -8,7 +8,8 @@ import gleam/option.{None, Some}
 import gleam/pgo.{Connection}
 import gleam/result
 import repo
-import schema/notes
+import schema/notes.{schema}
+import repo/query.{from, select, where}
 
 pub fn routes(db: Connection) {
   router.new()
@@ -16,23 +17,19 @@ pub fn routes(db: Connection) {
     "/",
     fn(_req: Request(BitString)) {
       let result =
-        pgo.execute(
-          "select id, title, content from notes",
-          db,
-          [],
-          notes.from_db(),
-        )
+        schema()
+        |> from()
+        |> select(["*"])
+        |> repo.all(db)
 
       case result {
-        Ok(result) -> {
-          result.rows
+        Ok(notes) ->
+          notes
           |> json.array(of: notes.encode)
           |> response.json()
-        }
-
-        Error(error) -> {
-          io.debug(error)
-          send(500, "Error loading notes")
+        Error(e) -> {
+          io.debug(e)
+          send(500, "Error fetching notes")
         }
       }
     },
@@ -44,19 +41,19 @@ pub fn routes(db: Connection) {
       case req.body {
         Ok(note) -> {
           let result =
-            repo.single(
-              db,
-              "insert into notes (title, content) values ($1, $2) returning *",
+            repo.insert(
+              schema(),
               [pgo.text(note.title), pgo.text(note.content)],
-              notes.from_db(),
+              db,
             )
+
           case result {
-            Some(note) ->
+            Ok(note) ->
               note
               |> notes.encode()
               |> response.json()
 
-            None -> {
+            Error(_) -> {
               send(500, "Error inserting note")
             }
           }
@@ -81,20 +78,27 @@ pub fn routes(db: Connection) {
             |> option.unwrap("")
             |> int.parse()
             |> result.unwrap(-1)
+
           let result =
-            repo.single(
+            schema()
+            |> from()
+            |> where([#("id = $1", [pgo.int(id)])])
+            |> repo.update(
+              [
+                #("title", pgo.text(note.title)),
+                #("content", pgo.text(note.content)),
+              ],
               db,
-              "update notes set title = $1, content = $2 where id = $3 returning *",
-              [pgo.text(note.title), pgo.text(note.content), pgo.int(id)],
-              notes.from_db(),
             )
+
           case result {
-            Some(note) ->
+            Ok(note) ->
               note
               |> notes.encode()
               |> response.json()
 
-            None -> {
+            Result(e) -> {
+              io.debug(e)
               send(500, "Error inserting note")
             }
           }
@@ -118,12 +122,11 @@ pub fn routes(db: Connection) {
         |> result.unwrap(-1)
 
       let result =
-        repo.single(
-          db,
-          "select id, title, content from notes where id = $1",
-          [pgo.int(id)],
-          notes.from_db(),
-        )
+        schema()
+        |> from()
+        |> select(["*"])
+        |> where([#("id = $1", [pgo.int(id)])])
+        |> repo.one(db)
 
       case result {
         Some(note) -> {

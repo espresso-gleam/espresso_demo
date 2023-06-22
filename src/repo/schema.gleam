@@ -4,8 +4,8 @@ import gleam/dynamic
 pub type Schema(a) {
   Schema(
     table: String,
+    primary_key: String,
     fields: List(Field),
-    model: a,
     decoder: dynamic.Decoder(a),
   )
 }
