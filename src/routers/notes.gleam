@@ -97,7 +97,7 @@ pub fn routes(db: Connection) {
               |> notes.encode()
               |> response.json()
 
-            Result(e) -> {
+            Error(e) -> {
               io.debug(e)
               send(500, "Error inserting note")
             }

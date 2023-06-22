@@ -87,7 +87,7 @@ pub fn create_decoder(
 }
 
 pub fn update_decoder(
-  handler: Service(Result(Note, json.DecodeError), a),
+  handler: Service(Result(CreateNote, json.DecodeError), a),
 ) -> Service(BitString, a) {
   fn(req: Request(BitString)) -> Response(a) {
     request.map(
@@ -96,7 +96,7 @@ pub fn update_decoder(
         body
         |> bit_string.to_string()
         |> result.unwrap("")
-        |> decode()
+        |> decode_create()
       },
     )
     |> handler()

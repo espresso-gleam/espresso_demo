@@ -59,9 +59,21 @@ pub fn update(
   data: List(#(String, pgo.Value)),
   db: Connection,
 ) -> Result(a, QueryError) {
-  let sql = query.update(schema, data)
+  let sql = query.update(query, data)
 
-  case pgo.execute(sql, db, data, schema.decoder) {
+  let bindings =
+    list.append(
+      query.bindings,
+      list.map(
+        data,
+        fn(field) {
+          let #(_field, value) = field
+          value
+        },
+      ),
+    )
+
+  case pgo.execute(sql, db, bindings, query.from.decoder) {
     Ok(result) -> {
       case list.first(result.rows) {
         Ok(result) -> Ok(result)

@@ -48,31 +48,29 @@ pub fn build(query: Query(a)) -> String {
     |> list.map(fn(field) { string_builder.from_string(field) })
     |> string_builder.join(", ")
 
-  let out =
-    string_builder.new()
-    |> string_builder.append("SELECT ")
-    |> string_builder.append_builder(select_fields)
-    |> string_builder.append(" FROM ")
-    |> string_builder.append(query.from.table)
-
-  let out = case query.where {
-    [] -> out
-    where ->
-      out
-      |> string_builder.append(" WHERE ")
-      |> build_where(where)
-  }
-
-  string_builder.to_string(out)
+  string_builder.new()
+  |> string_builder.append("SELECT ")
+  |> string_builder.append_builder(select_fields)
+  |> string_builder.append(" FROM ")
+  |> string_builder.append(query.from.table)
+  |> build_where(query.where)
+  |> string_builder.to_string()
 }
 
 fn build_where(query: StringBuilder, where: List(String)) -> StringBuilder {
-  let where_fields =
-    where
-    |> list.map(fn(field) { string_builder.from_string(field) })
-    |> string_builder.join(" AND ")
+  case where {
+    [] -> query
+    where -> {
+      let where_fields =
+        where
+        |> list.map(fn(field) { string_builder.from_string(field) })
+        |> string_builder.join(" AND ")
 
-  string_builder.append_builder(query, where_fields)
+      query
+      |> string_builder.append(" WHERE ")
+      |> string_builder.append_builder(where_fields)
+    }
+  }
 }
 
 pub fn insert(schema: Schema(a)) -> String {
@@ -101,5 +99,28 @@ pub fn insert(schema: Schema(a)) -> String {
   |> string_builder.append(") VALUES (")
   |> string_builder.append_builder(string_builder.join(replacements, ", "))
   |> string_builder.append(") RETURNING *")
+  |> string_builder.to_string()
+}
+
+pub fn update(query: Query(a), fields: List(#(String, pgo.Value))) -> String {
+  let offset = list.length(query.bindings)
+  let updates =
+    list.index_map(
+      fields,
+      fn(i, field) {
+        let #(field, _value) = field
+        string_builder.from_string(
+          field <> " = $" <> int.to_string(i + offset + 1),
+        )
+      },
+    )
+
+  string_builder.new()
+  |> string_builder.append("UPDATE ")
+  |> string_builder.append(query.from.table)
+  |> string_builder.append(" SET ")
+  |> string_builder.append_builder(string_builder.join(updates, ", "))
+  |> build_where(query.where)
+  |> string_builder.append(" RETURNING *")
   |> string_builder.to_string()
 }
