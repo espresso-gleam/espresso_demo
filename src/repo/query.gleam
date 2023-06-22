@@ -124,3 +124,12 @@ pub fn update(query: Query(a), fields: List(#(String, pgo.Value))) -> String {
   |> string_builder.append(" RETURNING *")
   |> string_builder.to_string()
 }
+
+pub fn delete(query: Query(a)) -> String {
+  string_builder.new()
+  |> string_builder.append("DELETE FROM ")
+  |> string_builder.append(query.from.table)
+  |> build_where(query.where)
+  |> string_builder.append(" RETURNING *")
+  |> string_builder.to_string()
+}

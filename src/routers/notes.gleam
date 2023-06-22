@@ -99,7 +99,7 @@ pub fn routes(db: Connection) {
 
             Error(e) -> {
               io.debug(e)
-              send(500, "Error inserting note")
+              send(500, "Error updating note")
             }
           }
         }
@@ -152,22 +152,21 @@ pub fn routes(db: Connection) {
         |> result.unwrap(-1)
 
       let result =
-        repo.single(
-          db,
-          "delete from notes where id = $1 returning *",
-          [pgo.int(id)],
-          notes.from_db(),
-        )
+        schema()
+        |> from()
+        |> where([#("id = $1", [pgo.int(id)])])
+        |> repo.delete(db)
 
       case result {
-        Some(note) -> {
+        Ok(note) -> {
           note
           |> notes.encode()
           |> response.json()
         }
 
-        None -> {
-          send(404, "Not found")
+        Error(e) -> {
+          io.debug(e)
+          send(500, "Error deleting note")
         }
       }
     },

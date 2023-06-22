@@ -1,5 +1,4 @@
-import gleam/pgo.{Connection, QueryError, Value}
-import gleam/dynamic
+import gleam/pgo.{Connection, QueryError}
 import gleam/list
 import gleam/option.{None, Option}
 import gleam/io
@@ -88,21 +87,20 @@ pub fn update(
   }
 }
 
-pub fn single(
-  db: Connection,
-  sql: String,
-  values: List(Value),
-  decoder: fn(dynamic.Dynamic) -> Result(a, List(dynamic.DecodeError)),
-) -> Option(a) {
-  case pgo.execute(sql, db, values, decoder) {
-    Ok(result) ->
-      result.rows
-      |> list.first()
-      |> option.from_result()
+pub fn delete(query: Query(a), db: Connection) -> Result(a, QueryError) {
+  let sql = query.delete(query)
 
-    error -> {
-      io.debug(error)
-      None
+  case pgo.execute(sql, db, query.bindings, query.from.decoder) {
+    Ok(result) -> {
+      case list.first(result.rows) {
+        Ok(result) -> Ok(result)
+        Error(_e) -> Error(pgo.UnexpectedResultType([]))
+      }
+    }
+
+    Error(e) -> {
+      io.debug(e)
+      Error(e)
     }
   }
 }
