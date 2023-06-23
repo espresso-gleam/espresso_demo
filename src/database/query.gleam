@@ -2,7 +2,7 @@ import gleam/int
 import gleam/list
 import gleam/pgo
 import gleam/string_builder.{StringBuilder}
-import repo/schema.{Schema}
+import database/schema.{Schema}
 
 pub type Where =
   List(#(String, List(pgo.Value)))

@@ -5,7 +5,7 @@ import espresso/response.{Response}
 import espresso/service.{Service}
 import gleam/bit_string
 import gleam/result
-import repo/schema.{Field, Schema}
+import database/schema.{Field, Schema}
 
 pub type Note {
   Note(id: Int, title: String, content: String)
@@ -42,14 +42,14 @@ pub fn encode(note: Note) {
   ])
 }
 
-pub type CreateNote {
-  CreateNote(title: String, content: String)
+pub type NewNote {
+  NewNote(title: String, content: String)
 }
 
-pub fn decode_create(body: String) -> Result(CreateNote, json.DecodeError) {
+pub fn decode_create(body: String) -> Result(NewNote, json.DecodeError) {
   let decoder =
     dynamic.decode2(
-      CreateNote,
+      NewNote,
       dynamic.field("title", of: dynamic.string),
       dynamic.field("content", of: dynamic.string),
     )
@@ -70,7 +70,7 @@ pub fn decode(body: String) {
 }
 
 pub fn create_decoder(
-  handler: Service(Result(CreateNote, json.DecodeError), a),
+  handler: Service(Result(NewNote, json.DecodeError), a),
 ) -> Service(BitString, a) {
   fn(req: Request(BitString)) -> Response(a) {
     request.map(
@@ -87,7 +87,7 @@ pub fn create_decoder(
 }
 
 pub fn update_decoder(
-  handler: Service(Result(CreateNote, json.DecodeError), a),
+  handler: Service(Result(NewNote, json.DecodeError), a),
 ) -> Service(BitString, a) {
   fn(req: Request(BitString)) -> Response(a) {
     request.map(

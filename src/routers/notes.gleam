@@ -1,3 +1,5 @@
+import database
+import database/query.{from, select, where}
 import espresso/request.{Request}
 import espresso/response.{json, send}
 import espresso/router.{delete, get, post, put}
@@ -7,9 +9,7 @@ import gleam/json
 import gleam/option.{None, Some}
 import gleam/pgo.{Connection}
 import gleam/result
-import repo
 import schema/notes.{schema}
-import repo/query.{from, select, where}
 
 pub fn routes(db: Connection) {
   router.new()
@@ -20,7 +20,7 @@ pub fn routes(db: Connection) {
         schema()
         |> from()
         |> select(["*"])
-        |> repo.all(db)
+        |> database.all(db)
 
       case result {
         Ok(notes) ->
@@ -41,7 +41,7 @@ pub fn routes(db: Connection) {
       case req.body {
         Ok(note) -> {
           let result =
-            repo.insert(
+            database.insert(
               schema(),
               [pgo.text(note.title), pgo.text(note.content)],
               db,
@@ -83,7 +83,7 @@ pub fn routes(db: Connection) {
             schema()
             |> from()
             |> where([#("id = $1", [pgo.int(id)])])
-            |> repo.update(
+            |> database.update(
               [
                 #("title", pgo.text(note.title)),
                 #("content", pgo.text(note.content)),
@@ -126,7 +126,7 @@ pub fn routes(db: Connection) {
         |> from()
         |> select(["*"])
         |> where([#("id = $1", [pgo.int(id)])])
-        |> repo.one(db)
+        |> database.one(db)
 
       case result {
         Some(note) -> {
@@ -155,7 +155,7 @@ pub fn routes(db: Connection) {
         schema()
         |> from()
         |> where([#("id = $1", [pgo.int(id)])])
-        |> repo.delete(db)
+        |> database.delete(db)
 
       case result {
         Ok(note) -> {

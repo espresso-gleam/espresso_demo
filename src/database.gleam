@@ -2,8 +2,8 @@ import gleam/pgo.{Connection, QueryError}
 import gleam/list
 import gleam/option.{None, Option}
 import gleam/io
-import repo/query.{Query}
-import repo/schema.{Schema}
+import database/query.{Query}
+import database/schema.{Schema}
 
 pub fn all(q: Query(a), db: Connection) -> Result(List(a), QueryError) {
   let sql = query.build(q)
