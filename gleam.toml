@@ -12,7 +12,7 @@ description = "A Gleam project"
 [dependencies]
 gleam_stdlib = "~> 0.29"
 espresso = "~> 0.0"
-gleam_pgo = "~> 0.4"
+espresso_pgo_wrapper = "~> 0.0"
 
 [dev-dependencies]
 gleeunit = "~> 0.10"
