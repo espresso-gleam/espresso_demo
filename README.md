@@ -11,6 +11,7 @@ A Gleam project
 gleam run   # Run the project
 gleam test  # Run the tests
 gleam shell # Run an Erlang shell
+npm run dev # Run the web server and ghp templatizer in watch mode
 ```
 
 ## Installation

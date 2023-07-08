@@ -15,7 +15,7 @@ pub fn routes(db: Connection) {
   router.new()
   |> get(
     "/",
-    fn(_req: Request(BitString)) {
+    fn(_req: Request(BitString, assigns, session)) {
       let result =
         schema()
         |> from()
@@ -113,7 +113,7 @@ pub fn routes(db: Connection) {
   )
   |> get(
     "/:id",
-    fn(req: Request(BitString)) {
+    fn(req: Request(BitString, assigns, session)) {
       let id =
         req
         |> request.get_param("id")
@@ -143,7 +143,7 @@ pub fn routes(db: Connection) {
   )
   |> delete(
     "/:id",
-    fn(req: Request(BitString)) {
+    fn(req: Request(BitString, assigns, session)) {
       let id =
         req
         |> request.get_param("id")
