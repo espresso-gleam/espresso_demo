@@ -1,8 +1,17 @@
+import database
+import database/query.{from, select}
 import espresso
+import espresso/request.{Request}
+import espresso/response.{render, send}
 import espresso/router.{static}
-import espresso/static.{Dir, File}
+import espresso/static.{Dir}
 import gleam/pgo
 import gleam/option.{Some}
+import templates/layout
+import templates/index
+import templates/notes/note
+import schema/notes.{NewNote}
+import gleam/json
 import routers/notes as note_router
 
 pub fn main() {
@@ -20,8 +29,56 @@ pub fn main() {
 
   let router =
     router.new()
+    |> router.get(
+      "/",
+      fn(_req: Request(BitString, assigns, session)) {
+        let result =
+          notes.schema()
+          |> from()
+          |> select(["*"])
+          |> database.all(db)
+
+        case result {
+          Ok(notes) ->
+            index.Params(notes)
+            |> index.render()
+            |> layout.render()
+            |> render()
+          Error(_) -> {
+            send(500, "Error fetching notes")
+          }
+        }
+      },
+    )
+    |> router.post(
+      "/create",
+      {
+        use req: Request(Result(NewNote, json.DecodeError), assigns, session) <-
+          notes.create_decoder
+        case req.body {
+          Ok(note) -> {
+            let result =
+              database.insert(
+                notes.schema(),
+                [pgo.text(note.title), pgo.text(note.content)],
+                db,
+              )
+
+            case result {
+              Ok(note) -> {
+                note
+                |> note.render()
+                |> render()
+              }
+              _ -> send(500, "Internal Server Error")
+            }
+          }
+
+          _ -> send(400, "Bad Request")
+        }
+      },
+    )
     |> router.router("/notes", note_router.routes(db))
-    |> static("/", File("public/index.html"))
     |> static("/[...]", Dir("public"))
 
   espresso.start(router)

@@ -70,9 +70,9 @@ pub fn decode(body: String) {
 }
 
 pub fn create_decoder(
-  handler: Service(Result(NewNote, json.DecodeError), a),
-) -> Service(BitString, a) {
-  fn(req: Request(BitString)) -> Response(a) {
+  handler: Service(Result(NewNote, json.DecodeError), assigns, session, res),
+) -> Service(BitString, assigns, session, res) {
+  fn(req: Request(BitString, assigns, session)) -> Response(res) {
     request.map(
       req,
       fn(body) {
@@ -87,9 +87,9 @@ pub fn create_decoder(
 }
 
 pub fn update_decoder(
-  handler: Service(Result(NewNote, json.DecodeError), a),
-) -> Service(BitString, a) {
-  fn(req: Request(BitString)) -> Response(a) {
+  handler: Service(Result(NewNote, json.DecodeError), assigns, session, res),
+) -> Service(BitString, assigns, session, res) {
+  fn(req: Request(BitString, assigns, session)) -> Response(res) {
     request.map(
       req,
       fn(body) {
