@@ -3,11 +3,11 @@ import schema/notes.{Note}
 pub type Params = Note
 ^%>
 
-<div class="bg-white rounded-lg shadow p-4">
+<div class="bg-white shadow p-4 border-2 border-black">
   <h2 class="text-lg font-semibold mb-2">
     <% txt(params.title) %>
   </h2>
-  <p class="text-gray-600">
+  <p class="text-gray-600 whitespace-pre">
     <% txt(params.content) %>
   </p>
 </div>

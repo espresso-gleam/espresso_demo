@@ -31,6 +31,10 @@ pub fn render(params: Params) {
       t("script")
       |> a("src", "https://unpkg.com/htmx.org/dist/ext/json-enc.js")
       |> c([]),
+      t("link")
+      |> a("href", "/style.css")
+      |> a("rel", "stylesheet")
+      |> c([]),
     ]),
     t("body")
     |> a("class", "bg-gray-100")

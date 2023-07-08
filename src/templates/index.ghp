@@ -10,28 +10,36 @@ pub type Params {
 }
 ^%>
 
-<main>
-  <h1 class="text-2xl font-bold mb-4">Notes</h1>
-  
-  <div class="mt-4">
-    <h2 class="text-lg font-semibold mb-2">Create a New Note</h2>
-    
-    <form hx-post="/create" hx-ext="json-enc" hx-target="#notes" hx-swap="beforeend" hx-on="htmx:afterRequest: this.reset()">
-      <div class="mb-4">
-        <label class="block text-gray-700 text-sm font-bold mb-2" for="title">Title:</label>
-        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" name="title" type="text" placeholder="Enter title" required >
-      </div>
-      <div class="mb-4">
-        <label class="block text-gray-700 text-sm font-bold mb-2" for="content">Content:</label>
-        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="content" name="content" placeholder="Enter content" required ></textarea>
-      </div>
-      
-      <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Create Note</button>
-    </form>
+<main class="border-2 border-solid border-black">
+  <div class="p-2 flex items-center bg-indigo-600 text-white">
+    <div class="w-4 h-4 rounded-full bg-red-600 mr-2"></div>
+    <div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
+    <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
+    <span class="font-bold">Notes</span>
   </div>
 
-  <div id="notes" class="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-    <span style="display: none"></span>
-    <% ..list.map(params.notes, note.render) %>
+  <div class="container mx-auto px-4 py-4">
+    <div>
+      <h2 class="text-lg font-semibold mb-2 text-black">Create a New Note</h2>
+      <form hx-post="/create" hx-ext="json-enc" hx-target="#notes" hx-swap="beforeend" hx-on="htmx:afterRequest: this.reset()">
+        <div class="mb-4">
+          <label class="block text-black text-sm font-bold mb-2" for="title">Title:</label>
+          <input class="shadow appearance-none border-2 border-black w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" id="title" name="title" type="text" placeholder="Enter title" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-black text-sm font-bold mb-2" for="content">Content:</label>
+          <textarea class="shadow appearance-none border-2 border-black w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" id="content" name="content" placeholder="Enter content" required></textarea>
+        </div>
+        <button class="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 transition duration-300 ease-in-out transform focus:outline-none focus:shadow-outline active:scale-95 active:translate-y-1 active:shadow-none active:bg-gray-500 active:text-white border-2 border-black" type="submit">
+          Create Note
+        </button>
+      </form>
+    </div>
+
+    <div id="notes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+      <% list.map(params.notes, fn (note) { %>
+        <% note.render(note) %>
+      <% }) %>
+    </div>
   </div>
 </main>
