@@ -1,0 +1,8 @@
+{
+  "name": "espresso_demo",
+  "scripts": {
+    "dev": "npx concurrently npm:dev:app npm:dev:templatizer",
+    "dev:app": "npx nodemon -e gleam --exec gleam run",
+    "dev:templatizer": "npx espresso_templatizer watch **/*.ghp"
+  }
+}

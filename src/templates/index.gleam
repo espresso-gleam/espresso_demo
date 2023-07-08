@@ -1,5 +1,6 @@
 import espresso/html.{a, c, t, txt}
 import gleam/list
+import templates/notes/note
 import schema/notes.{Note}
 
 pub type Params {
@@ -78,21 +79,7 @@ pub fn render(params: Params) {
       t("span")
       |> a("style", "display: none")
       |> c([]),
-      ..list.map(
-        params.notes,
-        fn(note) {
-          t("div")
-          |> a("class", "bg-white rounded-lg shadow p-4")
-          |> c([
-            t("h2")
-            |> a("class", "text-lg font-semibold mb-2")
-            |> c([txt(note.title)]),
-            t("p")
-            |> a("class", "text-gray-600")
-            |> c([txt(note.content)]),
-          ])
-        },
-      )
+      ..list.map(params.notes, note.render)
     ]),
   ])
 }
