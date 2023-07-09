@@ -1,15 +1,17 @@
 import database
-import database/query.{from, select}
+import database/query.{from, select, where}
 import espresso
 import espresso/request.{Request}
 import espresso/response.{render, send}
 import espresso/router.{static}
 import espresso/static.{Dir}
+import gleam/int
 import gleam/pgo
 import gleam/option.{Some}
 import templates/layout
 import templates/index
 import templates/notes/note
+import templates/notes/list as notes_list
 import schema/notes.{NewNote}
 import gleam/json
 import routers/notes as note_router
@@ -46,6 +48,53 @@ pub fn main() {
             |> render()
           Error(_) -> {
             send(500, "Error fetching notes")
+          }
+        }
+      },
+    )
+    |> router.delete(
+      "/delete/:id",
+      {
+        fn(req: Request(BitString, assigns, session)) {
+          case request.get_param(req, "id") {
+            Some(id) -> {
+              case int.parse(id) {
+                Ok(id) -> {
+                  let result =
+                    notes.schema()
+                    |> from()
+                    |> where([#("id = $1", [pgo.int(id)])])
+                    |> database.delete(db)
+
+                  case result {
+                    Ok(_note) -> {
+                      let result =
+                        notes.schema()
+                        |> from()
+                        |> select(["*"])
+                        |> database.all(db)
+
+                      case result {
+                        Ok(notes) ->
+                          notes
+                          |> notes_list.render()
+                          |> render()
+                        Error(_) -> {
+                          send(500, "Error fetching notes")
+                        }
+                      }
+                    }
+
+                    Error(_e) -> {
+                      send(500, "Error deleting note")
+                    }
+                  }
+                }
+                _ -> send(400, "Bad Request")
+              }
+            }
+
+            _ -> send(400, "Bad Request")
           }
         }
       },
