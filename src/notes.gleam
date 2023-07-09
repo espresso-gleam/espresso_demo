@@ -57,30 +57,27 @@ pub fn main() {
       "/delete/:id",
       {
         fn(req: Request(BitString, assigns, session)) {
-          let res = case request.get_param(req, "id") {
-            Some(id) -> {
-              use id <- result.then(int.parse(id))
-              use _note <- result.then(
-                notes.schema()
-                |> from()
-                |> where([#("id = $1", [pgo.int(id)])])
-                |> database.delete(db),
-              )
-              use notes <- result.then(
-                notes.schema()
-                |> from()
-                |> select(["*"])
-                |> database.all(db),
-              )
+          let res = {
+            use id <- result.then(request.get_param(req, "id"))
+            use id <- result.then(int.parse(id))
+            use _note <- result.then(
+              notes.schema()
+              |> from()
+              |> where([#("id = $1", [pgo.int(id)])])
+              |> database.delete(db),
+            )
+            use notes <- result.then(
+              notes.schema()
+              |> from()
+              |> select(["*"])
+              |> database.all(db),
+            )
 
-              Ok(
-                notes
-                |> notes_list.render()
-                |> render(),
-              )
-            }
-
-            _ -> Error(Nil)
+            Ok(
+              notes
+              |> notes_list.render()
+              |> render(),
+            )
           }
 
           result.unwrap(res, send(400, "Bad Request"))
