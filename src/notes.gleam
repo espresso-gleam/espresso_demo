@@ -8,6 +8,7 @@ import espresso/static.{Dir}
 import gleam/int
 import gleam/pgo
 import gleam/option.{Some}
+import gleam/result
 import templates/layout
 import templates/index
 import templates/notes/note
@@ -56,46 +57,33 @@ pub fn main() {
       "/delete/:id",
       {
         fn(req: Request(BitString, assigns, session)) {
-          case request.get_param(req, "id") {
+          let res = case request.get_param(req, "id") {
             Some(id) -> {
-              case int.parse(id) {
-                Ok(id) -> {
-                  let result =
-                    notes.schema()
-                    |> from()
-                    |> where([#("id = $1", [pgo.int(id)])])
-                    |> database.delete(db)
+              use id <- result.then(int.parse(id))
+              use _note <- result.then(
+                notes.schema()
+                |> from()
+                |> where([#("id = $1", [pgo.int(id)])])
+                |> database.delete(db),
+              )
+              use notes <- result.then(
+                notes.schema()
+                |> from()
+                |> select(["*"])
+                |> database.all(db),
+              )
 
-                  case result {
-                    Ok(_note) -> {
-                      let result =
-                        notes.schema()
-                        |> from()
-                        |> select(["*"])
-                        |> database.all(db)
-
-                      case result {
-                        Ok(notes) ->
-                          notes
-                          |> notes_list.render()
-                          |> render()
-                        Error(_) -> {
-                          send(500, "Error fetching notes")
-                        }
-                      }
-                    }
-
-                    Error(_e) -> {
-                      send(500, "Error deleting note")
-                    }
-                  }
-                }
-                _ -> send(400, "Bad Request")
-              }
+              Ok(
+                notes
+                |> notes_list.render()
+                |> render(),
+              )
             }
 
-            _ -> send(400, "Bad Request")
+            _ -> Error(Nil)
           }
+
+          result.unwrap(res, send(400, "Bad Request"))
         }
       },
     )
