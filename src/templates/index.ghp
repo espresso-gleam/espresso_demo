@@ -1,6 +1,5 @@
 <%^ 
-import gleam/list
-import templates/notes/note
+import templates/notes/list as note
 import schema/notes.{Note}
 ^%>
 
@@ -36,10 +35,6 @@ pub type Params {
       </form>
     </div>
 
-    <div id="notes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8">
-      <% list.map(params.notes, fn (note) { %>
-        <% note.render(note) %>
-      <% }) %>
-    </div>
+    <% note.render(params.notes) %>
   </div>
 </main>

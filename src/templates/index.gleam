@@ -1,6 +1,5 @@
 import espresso/html.{a, c, t, txt}
-import gleam/list
-import templates/notes/note
+import templates/notes/list as note
 import schema/notes.{Note}
 
 pub type Params {
@@ -88,10 +87,7 @@ pub fn render(params: Params) {
           |> c([txt("Create Note")]),
         ]),
       ]),
-      t("div")
-      |> a("id", "notes")
-      |> a("class", "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8")
-      |> c(list.map(params.notes, fn(note) { note.render(note) })),
+      note.render(params.notes),
     ]),
   ])
 }

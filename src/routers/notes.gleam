@@ -6,7 +6,6 @@ import espresso/router.{delete, get, post, put}
 import gleam/int
 import gleam/io
 import gleam/json
-import gleam/option.{None, Some}
 import gleam/pgo.{Connection}
 import gleam/result
 import schema/notes.{schema}
@@ -16,70 +15,60 @@ pub fn routes(db: Connection) {
   |> get(
     "/",
     fn(_req: Request(BitString, assigns, session)) {
-      let result =
-        schema()
-        |> from()
-        |> select(["*"])
-        |> database.all(db)
+      let res = {
+        use notes <- result.then(
+          schema()
+          |> from()
+          |> select(["*"])
+          |> database.all(db),
+        )
 
-      case result {
-        Ok(notes) ->
+        Ok(
           notes
           |> json.array(of: notes.encode)
-          |> response.json()
-        Error(e) -> {
-          io.debug(e)
-          send(500, "Error fetching notes")
-        }
+          |> response.json(),
+        )
       }
+
+      result.unwrap(res, send(500, "Error fetching notes"))
     },
   )
   |> post(
     "/",
     {
       use req <- notes.create_decoder
-      case req.body {
+      let res = case req.body {
         Ok(note) -> {
-          let result =
-            database.insert(
-              schema(),
-              [pgo.text(note.title), pgo.text(note.content)],
-              db,
-            )
-
-          case result {
-            Ok(note) ->
-              note
-              |> notes.encode()
-              |> response.json()
-
-            Error(_) -> {
-              send(500, "Error inserting note")
-            }
-          }
+          use note <- result.then(database.insert(
+            schema(),
+            [pgo.text(note.title), pgo.text(note.content)],
+            db,
+          ))
+          Ok(
+            note
+            |> notes.encode()
+            |> response.json(),
+          )
         }
 
         Error(err) -> {
           io.debug(err)
-          send(400, "Bad Request")
+          Ok(send(400, "Bad Request"))
         }
       }
+
+      result.unwrap(res, send(500, "Error inserting note"))
     },
   )
   |> put(
     "/:id",
     {
       use req <- notes.update_decoder
-      case req.body {
+      let res = case req.body {
         Ok(note) -> {
-          let id =
-            req
-            |> request.get_param("id")
-            |> option.unwrap("")
-            |> int.parse()
-            |> result.unwrap(-1)
-
-          let result =
+          use id <- result.then(request.get_param(req, "id"))
+          use id <- result.then(int.parse(id))
+          use note <- result.then(
             schema()
             |> from()
             |> where([#("id = $1", [pgo.int(id)])])
@@ -89,86 +78,61 @@ pub fn routes(db: Connection) {
                 #("content", pgo.text(note.content)),
               ],
               db,
-            )
+            ),
+          )
 
-          case result {
-            Ok(note) ->
-              note
-              |> notes.encode()
-              |> response.json()
-
-            Error(e) -> {
-              io.debug(e)
-              send(500, "Error updating note")
-            }
-          }
+          Ok(
+            note
+            |> notes.encode()
+            |> response.json(),
+          )
         }
-
-        Error(err) -> {
-          io.debug(err)
-          send(400, "Bad Request")
-        }
+        _ -> Ok(send(400, "Bad Request"))
       }
+
+      result.unwrap(res, send(500, "Error updating note"))
     },
   )
   |> get(
     "/:id",
     fn(req: Request(BitString, assigns, session)) {
-      let id =
-        req
-        |> request.get_param("id")
-        |> option.unwrap("")
-        |> int.parse()
-        |> result.unwrap(-1)
+      let res = {
+        use id <- result.then(request.get_param(req, "id"))
+        use id <- result.then(int.parse(id))
+        use note <- result.then(
+          schema()
+          |> from()
+          |> select(["*"])
+          |> where([#("id = $1", [pgo.int(id)])])
+          |> database.one(db),
+        )
 
-      let result =
-        schema()
-        |> from()
-        |> select(["*"])
-        |> where([#("id = $1", [pgo.int(id)])])
-        |> database.one(db)
-
-      case result {
-        Some(note) -> {
+        Ok(
           note
           |> notes.encode()
-          |> response.json()
-        }
-
-        None -> {
-          send(404, "Not found")
-        }
+          |> response.json(),
+        )
       }
+
+      result.unwrap(res, send(404, "Not found"))
     },
   )
   |> delete(
     "/:id",
     fn(req: Request(BitString, assigns, session)) {
-      let id =
-        req
-        |> request.get_param("id")
-        |> option.unwrap("")
-        |> int.parse()
-        |> result.unwrap(-1)
-
-      let result =
-        schema()
-        |> from()
-        |> where([#("id = $1", [pgo.int(id)])])
-        |> database.delete(db)
-
-      case result {
-        Ok(note) -> {
-          note
-          |> notes.encode()
-          |> response.json()
-        }
-
-        Error(e) -> {
-          io.debug(e)
-          send(500, "Error deleting note")
-        }
+      let res = {
+        use id <- result.then(request.get_param(req, "id"))
+        use id <- result.then(int.parse(id))
+        use _note <- result.then(
+          schema()
+          |> from()
+          |> where([#("id = $1", [pgo.int(id)])])
+          |> database.delete(db),
+        )
+        Ok(send(204, ""))
       }
+
+      result.unwrap(res, send(500, "Error deleting note"))
     },
   )
 }

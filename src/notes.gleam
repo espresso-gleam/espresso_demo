@@ -1,15 +1,18 @@
 import database
-import database/query.{from, select}
+import database/query.{from, select, where}
 import espresso
 import espresso/request.{Request}
 import espresso/response.{render, send}
 import espresso/router.{static}
 import espresso/static.{Dir}
+import gleam/int
 import gleam/pgo
 import gleam/option.{Some}
+import gleam/result
 import templates/layout
 import templates/index
 import templates/notes/note
+import templates/notes/list as notes_list
 import schema/notes.{NewNote}
 import gleam/json
 import routers/notes as note_router
@@ -47,6 +50,37 @@ pub fn main() {
           Error(_) -> {
             send(500, "Error fetching notes")
           }
+        }
+      },
+    )
+    |> router.delete(
+      "/delete/:id",
+      {
+        fn(req: Request(BitString, assigns, session)) {
+          let res = {
+            use id <- result.then(request.get_param(req, "id"))
+            use id <- result.then(int.parse(id))
+            use _note <- result.then(
+              notes.schema()
+              |> from()
+              |> where([#("id = $1", [pgo.int(id)])])
+              |> database.delete(db),
+            )
+            use notes <- result.then(
+              notes.schema()
+              |> from()
+              |> select(["*"])
+              |> database.all(db),
+            )
+
+            Ok(
+              notes
+              |> notes_list.render()
+              |> render(),
+            )
+          }
+
+          result.unwrap(res, send(400, "Bad Request"))
         }
       },
     )
