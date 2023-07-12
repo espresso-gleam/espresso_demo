@@ -16,6 +16,7 @@ import templates/notes/list as notes_list
 import schema/notes.{NewNote}
 import gleam/json
 import routers/notes as note_router
+import gleam/io
 
 pub fn main() {
   let db =
@@ -46,6 +47,7 @@ pub fn main() {
             index.Params(notes)
             |> index.render()
             |> layout.render()
+            |> io.debug()
             |> render()
           Error(_) -> {
             send(500, "Error fetching notes")

@@ -1,19 +1,23 @@
-<%^ pub type Params = html.Element ^%>
+import espresso/html
+pub type Params = html.Element
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notes</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
-    <link href="/style.css" rel="stylesheet" />
-  </head>
-  <body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-      <% params %>
-    </div>
-  </body>
-</html>
+pub fn render(params: Params) {
+  >->
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Notes</title>
+      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+      <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+      <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+      <link href="/style.css" rel="stylesheet" />
+    </head>
+    <body class="bg-gray-100">
+      <div class="container mx-auto px-4 py-8">
+        { params }
+      </div>
+    </body>
+  </html>
+  <-<
+}
