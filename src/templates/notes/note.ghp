@@ -1,25 +1,29 @@
-<%^
+import espresso/html
 import schema/notes.{Note}
 import gleam/int
 
 pub type Params = Note
-^%>
 
-<div class="bg-white shadow p-4 border-2 border-black relative">
-  <button hx-delete="<% "/delete/" <> int.to_string(params.id) %>"
-    hx-confirm="Are you sure?"
-    type="button"
-    hx-target="#notes"
-    hx-swap="outerHTML"
-    class="absolute top-2 right-2 w-6 h-6 flex text-center items-center justify-center bg-gray-300 text-black hover:bg-gray-400 focus:outline-none border-2 border-black"
-  >
-    x
-  </button>
+pub fn render(params: Params) {
+  >->
+  <div class="bg-white shadow p-4 border-2 border-black relative">
+    <button hx-delete={"/delete/" <> int.to_string(params.id)}
+      hx-confirm="Are you sure?"
+      type="button"
+      hx-target="#notes"
+      hx-swap="outerHTML"
+      class="absolute top-2 right-2 w-6 h-6 flex text-center items-center justify-center bg-gray-300 text-black hover:bg-gray-400 focus:outline-none border-2 border-black"
+    >
+      x
+    </button>
 
-  <h2 class="text-lg font-semibold mb-2">
-    <% txt(params.title) %>
-  </h2>
-  <p class="text-gray-600 whitespace-pre">
-    <% txt(params.content) %>
-  </p>
-</div>
+    <h2 class="text-lg font-semibold mb-2">
+      {params.title}
+    </h2>
+    <p class="text-gray-600 whitespace-pre">
+      {params.content}
+    </p>
+  </div>
+  <-<
+}
+
