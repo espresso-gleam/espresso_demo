@@ -1,13 +1,18 @@
-<%^ 
+import espresso/html
 import schema/notes.{Note}
 import templates/notes/note
 import gleam/list
 
 pub type Params = List(Note)
-^%>
 
-<div id="notes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8">
-  <% list.map(params, fn (n) { %>
-    <% note.render(n) %>
-  <% }) %>
-</div>
+pub fn render(params: Params) {
+  >->
+  <div id="notes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+    {
+      list.map(params, fn (n) {
+        note.render(n)
+      })
+    }
+  </div>
+  <-<
+}
